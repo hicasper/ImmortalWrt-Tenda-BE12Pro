@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     env:
       DEBIAN_FRONTEND: noninteractive
@@ -24,12 +24,12 @@ jobs:
 
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Restore Download Cache
-        uses: actions/cache@v6.1.0
+        uses: actions/cache@v6
         with:
           path: dl
           key: ${{ runner.os }}-immortalwrt-dl-tenda-be12-pro-${{ hashFiles('defconfig/low-mem-512m/mt7987-mt7992-be7200.config') }}
@@ -39,7 +39,7 @@ jobs:
 
       - name: Restore Compiler Cache
         id: ccache-restore
-        uses: actions/cache/restore@v6.1.0
+        uses: actions/cache/restore@v6
         with:
           path: .ccache
           key: ${{ runner.os }}-immortalwrt-ccache-tenda-be12-pro-${{ hashFiles('defconfig/low-mem-512m/mt7987-mt7992-be7200.config') }}-${{ github.sha }}
@@ -50,7 +50,7 @@ jobs:
 
       - name: Restore Host/Toolchain Cache
         id: host-toolchain-cache
-        uses: actions/cache/restore@v6.1.0
+        uses: actions/cache/restore@v6
         with:
           path: |
             staging_dir/host
@@ -67,8 +67,15 @@ jobs:
 
       - name: Initialize Build Environment
         run: |
-          sudo bash -c 'bash <(curl -fsSL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+          PROJECT_MIRRORS_FILE="./scripts/projectsmirrors.json"
+          if [ -f "$PROJECT_MIRRORS_FILE" ]; then
+            sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
+          fi
+
           sudo timedatectl set-timezone "Asia/Shanghai"
+          sudo curl -sL -o /tmp/init_build_environment.sh https://build-scripts.immortalwrt.org/init_build_environment.sh
+          sudo sed -i '/full-upgrade/d' /tmp/init_build_environment.sh
+          sudo bash /tmp/init_build_environment.sh
 
       - name: Prepare Compiler Cache
         run: |
@@ -88,6 +95,8 @@ jobs:
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+
+          bash ./custom.sh
 
       - name: Load Tenda BE12 Pro Configuration
         run: |
@@ -113,11 +122,18 @@ jobs:
             .config
           set_config "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_tenda_be12-pro" "y"
           set_config "CONFIG_CCACHE" "y"
+          set_config "CONFIG_TARGET_ROOTFS_INITRAMFS" "n"
           make defconfig
 
           grep -qx 'CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_tenda_be12-pro=y' .config
           grep -qx 'CONFIG_PACKAGE_luci-app-mtwifi-cfg=y' .config
           grep -E '^(CONFIG_TARGET_|CONFIG_CCACHE=|CONFIG_PACKAGE_kmod-mt7992=|CONFIG_MTK_WIFI7_CHIP_MT7992=)' .config
+
+      - name: Setup upterm session
+        uses: owenthereal/action-upterm@v2
+        if: ${{ failure() }}
+        with:
+          wait-timeout-minutes: 15
 
       - name: Download Sources
         run: |
@@ -142,16 +158,26 @@ jobs:
           grep -Eq '^luci-app-mtwifi-cfg[[:space:]]' \
             bin/targets/mediatek/filogic/immortalwrt-mediatek-filogic.manifest
 
+      - name: Collect Build Configuration
+        run: |
+          set -euo pipefail
+
+          mkdir -p artifacts
+          cp .config artifacts/immortalwrt-tenda-be12-pro.config
+          test -s artifacts/immortalwrt-tenda-be12-pro.config
+          cp -p bin/targets/mediatek/filogic/immortalwrt*.bin artifacts/
+          cp -p bin/targets/mediatek/filogic/mt7987*.bin artifacts/
+
       - name: Save Compiler Cache
         if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6.1.0
+        uses: actions/cache/save@v6
         with:
           path: .ccache
           key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
 
       - name: Save Host/Toolchain Cache
         if: success() && steps.host-toolchain-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6.1.0
+        uses: actions/cache/save@v6
         with:
           path: |
             staging_dir/host
@@ -163,10 +189,11 @@ jobs:
           key: ${{ steps.host-toolchain-cache.outputs.cache-primary-key }}
 
       - name: Upload Firmware
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7
         with:
           name: firmware-tenda-be12-pro
-          path: bin/targets/mediatek/filogic/*tenda_be12-pro*.bin
+          path: |
+            ./artifacts
           if-no-files-found: error
 
   publish:
@@ -178,7 +205,7 @@ jobs:
 
     steps:
       - name: Download Firmware
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8
         with:
           path: all-firmwares
 
@@ -187,7 +214,8 @@ jobs:
           set -euo pipefail
 
           mkdir -p final-release
-          find all-firmwares -type f -name '*tenda_be12-pro*.bin' -print -exec cp {} final-release/ \;
+          find all-firmwares -type f -name '*.bin' -print -exec cp {} final-release/ \;
+          find all-firmwares -type f -name '*.config' -print -exec cp {} final-release/ \;
 
           if ! find final-release -type f -name '*.bin' -print -quit | grep -q .; then
             echo "No Tenda BE12 Pro firmware files found" >&2
@@ -198,11 +226,13 @@ jobs:
           ls -lh final-release
 
       - name: Create Release
-        uses: softprops/action-gh-release@v3.0.1
+        uses: softprops/action-gh-release@v3
         with:
           make_latest: true
           tag_name: ${{ github.ref_name }}
-          files: final-release/*.bin
+          files: |
+            final-release/*.bin
+            final-release/*.config
           fail_on_unmatched_files: true
           draft: false
           body: |
@@ -212,4 +242,5 @@ jobs:
             - Device: Tenda BE12 Pro
             - Wireless: MediaTek MT7992 with the MTK Wi-Fi 7 driver
             - Build config: `defconfig/low-mem-512m/mt7987-mt7992-be7200.config`
+            - Full build config: `immortalwrt-tenda-be12-pro.config`
             - Commit: `${{ github.sha }}`
