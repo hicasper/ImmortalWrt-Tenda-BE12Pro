@@ -76,6 +76,7 @@ UPDATE_PACKAGE "luciapp-adguardhome" "stevenjoezhang/luci-app-adguardhome" "dev"
 
 MODEL_CONFIG_FILE='./defconfig/low-mem-512m/mt7987-mt7992-be7200.config'
 echo >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_kmod-mtd-rw=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_LUCI_LANG_zh_Hans=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-wol=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-tailscale-community=y' >> $MODEL_CONFIG_FILE
