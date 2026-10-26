@@ -16,10 +16,6 @@ jobs:
 
     env:
       DEBIAN_FRONTEND: noninteractive
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_COMPRESS: "true"
-      CCACHE_MAXSIZE: "3000M"
-      CCACHE_BASEDIR: ${{ github.workspace }}
       FIRMWARE_CONFIG: defconfig/low-mem-512m/mt7987-mt7992-be7200.config
 
     steps:
@@ -28,42 +24,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restore Download Cache
-        uses: actions/cache@v6
+      - name: Prepare Cache
+        uses: klever1988/cachewrtbuild@main
         with:
-          path: dl
-          key: ${{ runner.os }}-immortalwrt-dl-tenda-be12-pro-${{ hashFiles('defconfig/low-mem-512m/mt7987-mt7992-be7200.config') }}
-          restore-keys: |
-            ${{ runner.os }}-immortalwrt-dl-tenda-be12-pro-
-            ${{ runner.os }}-immortalwrt-dl-
-
-      - name: Restore Compiler Cache
-        id: ccache-restore
-        uses: actions/cache/restore@v6
-        with:
-          path: .ccache
-          key: ${{ runner.os }}-immortalwrt-ccache-tenda-be12-pro-${{ hashFiles('defconfig/low-mem-512m/mt7987-mt7992-be7200.config') }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-immortalwrt-ccache-tenda-be12-pro-${{ hashFiles('defconfig/low-mem-512m/mt7987-mt7992-be7200.config') }}-
-            ${{ runner.os }}-immortalwrt-ccache-tenda-be12-pro-
-            ${{ runner.os }}-immortalwrt-ccache-
-
-      - name: Restore Host/Toolchain Cache
-        id: host-toolchain-cache
-        uses: actions/cache/restore@v6
-        with:
-          path: |
-            staging_dir/host
-            staging_dir/hostpkg
-            staging_dir/toolchain-*
-            build_dir/host
-            build_dir/hostpkg
-            build_dir/toolchain-*
-          key: ${{ runner.os }}-immortalwrt-host-toolchain-tenda-be12-pro-${{ hashFiles('tools/**', 'toolchain/**', 'include/**') }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-immortalwrt-host-toolchain-tenda-be12-pro-${{ hashFiles('tools/**', 'toolchain/**', 'include/**') }}-
-            ${{ runner.os }}-immortalwrt-host-toolchain-tenda-be12-pro-
-            ${{ runner.os }}-immortalwrt-host-toolchain-
+          ccache: true
+          mixkey: 'a53-mtkdev'
 
       - name: Initialize Build Environment
         run: |
@@ -76,20 +41,6 @@ jobs:
           sudo curl -sL -o /tmp/init_build_environment.sh https://build-scripts.immortalwrt.org/init_build_environment.sh
           sudo sed -i '/full-upgrade/d' /tmp/init_build_environment.sh
           sudo bash /tmp/init_build_environment.sh
-
-      - name: Prepare Compiler Cache
-        run: |
-          set -euo pipefail
-
-          if ! command -v ccache >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y ccache
-          fi
-
-          mkdir -p "${CCACHE_DIR}" dl
-          ccache -M "${CCACHE_MAXSIZE}"
-          ccache --zero-stats || true
-          ccache --show-config | sed -n '1,20p'
 
       - name: Update and Install Feeds
         run: |
@@ -167,26 +118,6 @@ jobs:
           test -s artifacts/immortalwrt-tenda-be12-pro.config
           cp -p bin/targets/mediatek/filogic/immortalwrt*.bin artifacts/
           cp -p bin/targets/mediatek/filogic/mt7987*.bin artifacts/
-
-      - name: Save Compiler Cache
-        if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: .ccache
-          key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
-
-      - name: Save Host/Toolchain Cache
-        if: success() && steps.host-toolchain-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: |
-            staging_dir/host
-            staging_dir/hostpkg
-            staging_dir/toolchain-*
-            build_dir/host
-            build_dir/hostpkg
-            build_dir/toolchain-*
-          key: ${{ steps.host-toolchain-cache.outputs.cache-primary-key }}
 
       - name: Upload Firmware
         uses: actions/upload-artifact@v7
