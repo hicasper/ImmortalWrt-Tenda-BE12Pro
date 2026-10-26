@@ -9,7 +9,7 @@ WRT_SSID='Tenda'
 CFG_FILE='./package/base-files/files/bin/config_generate'
 #修改默认主机名
 sed -i "s/hostname='.*'/hostname='$WRT_HOSTNAME'/g" $CFG_FILE
-sed -i "s/ImmortalWrt-/hostname='$WRT_HOSTNAME_'/g" ./package/mtk/applications/mtwifi-cfg-ucode/files/lib/wifi/mtwifi.uc
+sed -i "s/ImmortalWrt-/${WRT_HOSTNAME}_/g" ./package/mtk/applications/mtwifi-cfg-ucode/files/lib/wifi/mtwifi.uc
 #修改默认IP地址
 sed -i "s/192\.168\.[0-9]+\.[0-9]+/$WRT_IP/g" $CFG_FILE
 #修改immortalwrt.lan关联IP
@@ -20,13 +20,13 @@ if [ -f "$WIFI_UC" ]; then
 	#修改WIFI名称
 	sed -i "s/ssid='.*'/ssid='$WRT_SSID'/g" $WIFI_UC
 	#修改WIFI密码
-	#sed -i "s/key='.*'/key=''/g" $WIFI_UC
+	sed -i "s/key='.*'/key=''/g" $WIFI_UC
 fi
 
 #移除luci-app-attendedsysupgrade
 find ./feeds/luci/collections/ -type f -name "Makefile" -exec sed -i "/attendedsysupgrade/d" {} +
 #修改默认主题
-find ./feeds/luci/collections/ -type f -name "Makefile" -exec sed -i "s/luci-theme-bootstrap/luci-theme-footstrap/g" {} +
+sed -i '/set luci.main.mediaurlbase=\/luci-static\/bootstrap/d' ./feeds/luci/themes/luci-theme-bootstrap/root/etc/uci-defaults/30_luci-theme-bootstrap
 
 #安装和更新软件包
 UPDATE_PACKAGE() {
@@ -71,7 +71,7 @@ UPDATE_PACKAGE "nas" "linkease/nas-packages" "master"
 UPDATE_PACKAGE "nas_luci" "linkease/nas-packages-luci" "main"
 #UPDATE_PACKAGE "openappfilter" "destan19/OpenAppFilter" "master" "" "appfilter oaf"
 UPDATE_PACKAGE "luciapp-adguardhome" "stevenjoezhang/luci-app-adguardhome" "dev" "" "luci-app-adguardhome"
-UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
+#UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
 
 
 MODEL_CONFIG_FILE='./defconfig/low-mem-512m/mt7987-mt7992-be7200.config'
@@ -79,11 +79,11 @@ echo >> $MODEL_CONFIG_FILE
 echo 'CONFIG_LUCI_LANG_zh_Hans=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-wol=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-tailscale-community=y' >> $MODEL_CONFIG_FILE
-echo 'CONFIG_PACKAGE_luci-app-adguardhome=y' >> $MODEL_CONFIG_FILE
+#echo 'CONFIG_PACKAGE_luci-app-adguardhome=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-compat=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_adguardhome=y' >> $MODEL_CONFIG_FILE
-echo 'CONFIG_PACKAGE_mihomo-meta=y' >> $MODEL_CONFIG_FILE
-echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
+#echo 'CONFIG_PACKAGE_mihomo-meta=y' >> $MODEL_CONFIG_FILE
+#echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
 #echo 'CONFIG_PACKAGE_luci-app-oaf=y' >> $MODEL_CONFIG_FILE
 echo >> $MODEL_CONFIG_FILE
 
