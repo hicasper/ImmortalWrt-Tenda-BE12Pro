@@ -129,12 +129,6 @@ jobs:
           grep -qx 'CONFIG_PACKAGE_luci-app-mtwifi-cfg=y' .config
           grep -E '^(CONFIG_TARGET_|CONFIG_CCACHE=|CONFIG_PACKAGE_kmod-mt7992=|CONFIG_MTK_WIFI7_CHIP_MT7992=)' .config
 
-      - name: Setup upterm session
-        uses: owenthereal/action-upterm@v2
-        if: ${{ failure() }}
-        with:
-          wait-timeout-minutes: 15
-
       - name: Download Sources
         run: |
           make download -j"$(nproc)"
@@ -157,6 +151,12 @@ jobs:
         run: |
           grep -Eq '^luci-app-mtwifi-cfg[[:space:]]' \
             bin/targets/mediatek/filogic/immortalwrt-mediatek-filogic.manifest
+
+      - name: Setup upterm debug session
+        uses: owenthereal/action-upterm@v2
+        if: ${{ failure() }}
+        with:
+          wait-timeout-minutes: 15
 
       - name: Collect Build Configuration
         run: |
