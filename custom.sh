@@ -92,6 +92,11 @@ echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
 #echo 'CONFIG_PACKAGE_luci-app-oaf=y' >> $MODEL_CONFIG_FILE
 echo >> $MODEL_CONFIG_FILE
 
+# 手动调整插件
+if [ -n "$WRT_PKG" ]; then
+	echo -e "$WRT_PKG" >> ./.config
+fi
+
 # UPDATE_PACKAGE "包名" "项目地址" "项目分支" "pkg，可选，从大杂烩中单独提取包名插件"
 # 调用示例
 # UPDATE_PACKAGE "OpenAppFilter" "destan19/OpenAppFilter" "master" "" "custom_name1 custom_name2"

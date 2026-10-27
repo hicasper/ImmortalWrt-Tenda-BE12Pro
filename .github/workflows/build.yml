@@ -5,6 +5,14 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      WRT_PKG:
+        description: '手动调整插件包，多个请用\n符号隔开。'
+        required: false
+        type: string
+
+env:
+  WRT_PKG: ${{inputs.WRT_PKG}}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
