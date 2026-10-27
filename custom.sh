@@ -67,24 +67,28 @@ UPDATE_PACKAGE() {
 	fi
 }
 
+# Update packages
 UPDATE_PACKAGE "nas" "linkease/nas-packages" "master"
 UPDATE_PACKAGE "nas_luci" "linkease/nas-packages-luci" "main"
 #UPDATE_PACKAGE "openappfilter" "destan19/OpenAppFilter" "master" "" "appfilter oaf"
 UPDATE_PACKAGE "luciapp-adguardhome" "stevenjoezhang/luci-app-adguardhome" "dev" "" "luci-app-adguardhome"
-#UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
+UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
 
+# Proceed package files
+sed -i 's/PKG_BUILD_VERSION:=.*/PKG_BUILD_VERSION:=v1.19.29/g' ./package/OpenWrt-nikki/mihomo-meta/Makefile
 
+# Enable packages
 MODEL_CONFIG_FILE='./defconfig/low-mem-512m/mt7987-mt7992-be7200.config'
 echo >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_kmod-mtd-rw=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_LUCI_LANG_zh_Hans=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-wol=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-tailscale-community=y' >> $MODEL_CONFIG_FILE
-#echo 'CONFIG_PACKAGE_luci-app-adguardhome=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_luci-app-adguardhome=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-compat=y' >> $MODEL_CONFIG_FILE
-echo 'CONFIG_PACKAGE_adguardhome=y' >> $MODEL_CONFIG_FILE
-#echo 'CONFIG_PACKAGE_mihomo-meta=y' >> $MODEL_CONFIG_FILE
-#echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
+#echo 'CONFIG_PACKAGE_adguardhome=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_mihomo-meta=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
 #echo 'CONFIG_PACKAGE_luci-app-oaf=y' >> $MODEL_CONFIG_FILE
 echo >> $MODEL_CONFIG_FILE
 
