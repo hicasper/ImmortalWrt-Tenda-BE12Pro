@@ -7,6 +7,7 @@ if ! uci -q get system.@imm_init[0].system_chn > "/dev/null"; then
 		set system.@system[0].timezone="CST-8"
 		set system.@system[0].zonename="Asia/Shanghai"
 		set system.@system[0].log_size='128'
+		set system.@system[0].conloglevel='5'
 
 		delete system.ntp.server
 		add_list system.ntp.server="ntp.tencent.com"
@@ -28,7 +29,7 @@ fi
 
 apk_mirror="$(uci -q get system.@imm_init[0].apk_mirror)"
 if [ -z "$apk_mirror" ]; then
-	apk_mirror="https://mirrors.cernet.edu.cn/immortalwrt"
+	apk_mirror="https://mirrors.pku.edu.cn/immortalwrt"
 	uci -q batch <<-EOF
 		set system.@imm_init[0].apk_mirror="$apk_mirror"
 		commit system

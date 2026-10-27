@@ -89,14 +89,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          ccache --show-stats || true
-
           if ! make -j"$(nproc)"; then
             echo "::warning::Parallel build failed, retrying with -j1 V=s"
             make -j1 V=s
           fi
 
-          ccache --show-stats || true
 
       - name: Verify Wireless UI Package
         run: |
