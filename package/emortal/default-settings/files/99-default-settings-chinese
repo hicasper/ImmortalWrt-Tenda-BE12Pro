@@ -6,6 +6,8 @@ if ! uci -q get system.@imm_init[0].system_chn > "/dev/null"; then
 	uci -q batch <<-EOF
 		set system.@system[0].timezone="CST-8"
 		set system.@system[0].zonename="Asia/Shanghai"
+		set system.@system[0].log_size='128'
+		set system.@system[0].conloglevel='5'
 
 		delete system.ntp.server
 		add_list system.ntp.server="ntp.tencent.com"
@@ -20,7 +22,7 @@ fi
 
 opkg_mirror="$(uci -q get system.@imm_init[0].opkg_mirror)"
 if [ -z "$opkg_mirror" ]; then
-	opkg_mirror="https://mirrors.vsean.net/openwrt"
+	opkg_mirror="https://mirrors.pku.edu.cn/immortalwrt"
 	uci -q batch <<-EOF
 		set system.@imm_init[0].opkg_mirror="$opkg_mirror"
 		commit system
