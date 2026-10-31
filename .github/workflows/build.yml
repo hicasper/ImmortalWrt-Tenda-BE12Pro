@@ -13,7 +13,7 @@ on:
 
 env:
   WRT_PKG: ${{inputs.WRT_PKG}}
-  
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -104,21 +104,34 @@ jobs:
           ccache --show-stats || true
           make download -j"$(nproc)"
           find dl -type f -size -1024c -delete
+          # Update Golang
+          ln -sfn "/usr/bin/go" "./staging_dir/hostpkg/bin/go"
+          ln -sfn "/usr/bin/gofmt" "./staging_dir/hostpkg/bin/gofmt"
+          ln -sfn "/usr/bin/go" "./staging_dir/host/bin/go"
+          ln -sfn "/usr/bin/gofmt" "./staging_dir/host/bin/gofmt"
+          ln -sfn "/usr/bin/go" "./staging_dir/hostpkg/lib/go-cross/bin/go"
 
       - name: Compile Firmware
         run: |
           set -euo pipefail
           ccache --show-stats || true
           if ! make -j"$(nproc)"; then
-            echo "::warning::Parallel build failed, retrying with -j1 V=s"
-            make -j1 V=s
+            ln -sfn "/usr/bin/go" "./staging_dir/hostpkg/bin/go"
+            ln -sfn "/usr/bin/gofmt" "./staging_dir/hostpkg/bin/gofmt"
+            ln -sfn "/usr/bin/go" "./staging_dir/host/bin/go"
+            ln -sfn "/usr/bin/gofmt" "./staging_dir/host/bin/gofmt"
+            ln -sfn "/usr/bin/go" "./staging_dir/hostpkg/lib/go-cross/bin/go"
+            if ! make -j"$(nproc)"; then
+              echo "::warning::Parallel build failed, retrying with -j1 V=s"
+              make -j1 V=s
+            fi
           fi
           ccache --show-stats || true
 
-      # - name: Verify Wireless UI Package
-      #   run: |
-      #     grep -Eq '^luci-app-mtwifi-cfg[[:space:]]' \
-      #       bin/targets/mediatek/filogic/immortalwrt-mediatek-filogic.manifest
+      - name: Verify Wireless UI Package
+        run: |
+          grep -Eq '^luci-app-mtwifi-cfg[[:space:]]' \
+            bin/targets/mediatek/filogic/immortalwrt-mediatek-filogic-tenda_be12-pro.manifest
 
       - name: Collect Build Configuration
         run: |
