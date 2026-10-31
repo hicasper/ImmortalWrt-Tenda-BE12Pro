@@ -68,9 +68,12 @@ UPDATE_PACKAGE() {
 }
 
 # Update packages
-UPDATE_PACKAGE "nas" "linkease/nas-packages" "master"
-UPDATE_PACKAGE "nas_luci" "linkease/nas-packages-luci" "main"
+#UPDATE_PACKAGE "nas" "linkease/nas-packages" "master"
+#UPDATE_PACKAGE "nas_luci" "linkease/nas-packages-luci" "main"
 #UPDATE_PACKAGE "openappfilter" "destan19/OpenAppFilter" "master" "" "appfilter oaf"
+UPDATE_PACKAGE "luci-theme-footstrap" "VizzleTF/luci-theme-footstrap" "main"
+UPDATE_PACKAGE "tailscale" "GuNanOvO/openwrt-tailscale" "main" "pkg" "tailscale"
+UPDATE_PACKAGE "luci-app-tailscale-community" "Tokisaki-Galaxy/luci-app-tailscale-community" "master" "" "luci-app-tailscale-community"
 UPDATE_PACKAGE "luciapp-adguardhome" "stevenjoezhang/luci-app-adguardhome" "dev" "" "luci-app-adguardhome"
 UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
 
@@ -78,6 +81,12 @@ UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
 sed -i 's/PKG_BUILD_VERSION:=.*/PKG_BUILD_VERSION:=v1.19.29/g' ./package/OpenWrt-nikki/mihomo-meta/Makefile
 sed -i 's/PKG_SOURCE_VERSION:=.*/PKG_SOURCE_VERSION:=v1.19.29/g' ./package/OpenWrt-nikki/mihomo-meta/Makefile
 sed -i '/CONFLICTS:=mihomo-/d' ./package/OpenWrt-nikki/mihomo-meta/Makefile ./package/OpenWrt-nikki/mihomo-alpha/Makefile
+sed -i \
+  -e 's/ (OpenWrt-UPX)//g' \
+  -e 's/ (UPX Compressed)//g' \
+  -e '/^ifneq ($(filter mips64% riscv64% loongarch64%,$(ARCH)),)/,/^endif$/d' \
+  -e '/^ifneq ($(DISABLE_UPX),1)/,/^endif$/d' \
+  ./package/tailscale/Makefile
 
 # Enable packages
 MODEL_CONFIG_FILE='./defconfig/minimal.config'
@@ -93,6 +102,7 @@ echo 'CONFIG_PACKAGE_mihomo-meta=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_mihomo-alpha=n' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
 #echo 'CONFIG_PACKAGE_luci-app-oaf=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_luci-theme-footstrap=y' >> $MODEL_CONFIG_FILE
 echo >> $MODEL_CONFIG_FILE
 
 # 手动调整插件
