@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 VIKINGYFY
 
-WRT_IP='192.168.1.1'
-WRT_HOSTNAME='ROUTER-TENDA'
+WRT_IP='192.168.11.1'
+WRT_HOSTNAME='TENDA'
 WRT_SSID='Tenda'
 
 CFG_FILE='./package/base-files/files/bin/config_generate'
@@ -21,6 +21,8 @@ if [ -f "$WIFI_UC" ]; then
 	sed -i "s/ssid='.*'/ssid='$WRT_SSID'/g" $WIFI_UC
 	#修改WIFI密码
 	sed -i "s/key='.*'/key=''/g" $WIFI_UC
+	#国家
+	sed -i "s/country || ''/country || 'CN'/g" $WIFI_UC
 fi
 
 #移除luci-app-attendedsysupgrade
@@ -104,6 +106,24 @@ echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
 #echo 'CONFIG_PACKAGE_luci-app-oaf=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-theme-footstrap=y' >> $MODEL_CONFIG_FILE
 echo >> $MODEL_CONFIG_FILE
+
+
+cat << EOFF > package/base-files/files/etc/uci-defaults/95-custom-settings
+
+uci -q batch <<-EOF
+	set system.@system[0].log_size='128'
+	set system.@system[0].conloglevel='5'
+	commit system
+EOF
+
+if [ -d /www/luci-static/footstrap ]; then
+    uci -q set luci.main.mediaurlbase='/luci-static/footstrap'
+    uci -q commit luci
+fi
+
+exit 0
+
+EOFF
 
 # 手动调整插件
 if [ -n "$WRT_PKG" ]; then

@@ -81,7 +81,7 @@ cat /sys/kernel/debug/hnat/hook_toggle 2>/dev/null
 ImmortalWrt is a fork of [OpenWrt](https://openwrt.org), with more packages ported, more devices supported, default optimized profiles and localization modifications for mainland China users.<br/>
 Compared to upstream, we allow to use (non-upstreamable) modifications/hacks to provide better feature/performance/support.
 
-Default login address: http://192.168.6.1 or http://immortalwrt.lan, username: __root__, password: _none_.
+Default login address: http://192.168.11.1 or http://immortalwrt.lan, username: __root__, password: _none_.
 
 ## Download
 Built firmware images are available for many architectures and come with a package selection to be used as WiFi home router. To quickly find a factory image usable to migrate from a vendor stock firmware to ImmortalWrt, try the *Firmware Selector*.
@@ -135,7 +135,7 @@ To build your own firmware you need a GNU/Linux, BSD or macOS system (case sensi
   3. Run `./scripts/feeds update -a` to obtain all the latest package definitions defined in feeds.conf / feeds.conf.default
   4. Run `./scripts/feeds install -a` to install symlinks for all obtained packages into package/feeds/
   5. Copy the configuration file for your device from the `defconfig` directory to the project root directory and rename it `.config`
-     
+
      ```
      # MT7988_mt7990
      cp -f defconfig/mt7988_mt7990.config .config
@@ -146,7 +146,7 @@ To build your own firmware you need a GNU/Linux, BSD or macOS system (case sensi
      # MT7988_mt7992
      cp -f defconfig/mt7988_mt7992.config .config
 
-     
+
   6. Run `make` to build your firmware. This will download all sources, build the cross-compile toolchain and then cross-compile the GNU/Linux kernel & all chosen applications for your target system.
 
   ### Related Repositories

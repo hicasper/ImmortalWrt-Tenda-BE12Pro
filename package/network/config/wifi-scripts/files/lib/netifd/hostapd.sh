@@ -919,7 +919,7 @@ hostapd_set_bss_options() {
 	[ "$mbo" -eq 1 ] && append bss_conf "mbo=1" "$N"
 
 	json_get_vars ieee80211k rrm_neighbor_report rrm_beacon_report rnr
-	set_default ieee80211k 0
+	set_default ieee80211k 1
 	set_default rnr 0
 	if [ "$ieee80211k" -eq "1" ]; then
 		set_default rrm_neighbor_report 1
