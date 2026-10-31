@@ -10,6 +10,10 @@ on:
         description: '手动调整插件包，多个请用\n符号隔开。'
         required: false
         type: string
+      CLEAR_CACHE:
+        description: '是否清理编译缓存'
+        type: boolean
+        default: false
 
 env:
   WRT_PKG: ${{inputs.WRT_PKG}}
@@ -35,12 +39,13 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Prepare Cache
         uses: klever1988/cachewrtbuild@main
         with:
           ccache: true
+          clean: ${{inputs.CLEAR_CACHE}}
           mixkey: 'a53-mtkdev'
 
       - name: Initialize Build Environment
@@ -104,12 +109,6 @@ jobs:
           ccache --show-stats || true
           make download -j"$(nproc)"
           find dl -type f -size -1024c -delete
-          # Update Golang
-          ln -sfn "/usr/bin/go" "./staging_dir/hostpkg/bin/go"
-          ln -sfn "/usr/bin/gofmt" "./staging_dir/hostpkg/bin/gofmt"
-          ln -sfn "/usr/bin/go" "./staging_dir/host/bin/go"
-          ln -sfn "/usr/bin/gofmt" "./staging_dir/host/bin/gofmt"
-          ln -sfn "/usr/bin/go" "./staging_dir/hostpkg/lib/go-cross/bin/go"
 
       - name: Compile Firmware
         run: |
