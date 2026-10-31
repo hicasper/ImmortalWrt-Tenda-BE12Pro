@@ -32,7 +32,7 @@ detect_mtwifi() {
 					htmode="EHT160"
 					htbsscoex="0"
 					ssid="ImmortalWrt-5G"
-					channel="36"
+					channel="auto"
 				elif [ "$band" = "6g" ]; then
 					htmode="EHT160"
 					htbsscoex="0"
@@ -52,13 +52,15 @@ detect_mtwifi() {
 					set wireless.${dev}.mu_beamformer=1
 					set wireless.${dev}.noscan=${htbsscoex}
 					set wireless.${dev}.serialize=1
-					
+
 					set wireless.default_${dev}=wifi-iface
 					set wireless.default_${dev}.device=${dev}
 					set wireless.default_${dev}.network=lan
 					set wireless.default_${dev}.mode=ap
 					set wireless.default_${dev}.ssid=${ssid}
 					set wireless.default_${dev}.encryption=none
+					set wireless.default_${dev}.ieee80211k='1'
+					set wireless.default_${dev}.uapsd='1'
 EOF
 				uci -q commit wireless
 			}
