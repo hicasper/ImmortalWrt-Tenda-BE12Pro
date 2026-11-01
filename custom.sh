@@ -84,6 +84,7 @@ UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
 git clone --depth=1 --single-branch --branch master https://github.com/openwrt/luci ./tmp_wrtluci && \
 	cp -rf ./tmp_wrtluci/applications/luci-app-wifihistory ./package/ &&
 	rm -rf ./tmp_wrtluci
+sed -i 's|../../luci.mk|$(TOPDIR)/feeds/luci/luci.mk|g' package/luci-app-wifihistory/Makefile
 
 # Proceed package files
 sed -i 's/PKG_BUILD_VERSION:=.*/PKG_BUILD_VERSION:=v1.19.29/g' ./package/OpenWrt-nikki/mihomo-meta/Makefile

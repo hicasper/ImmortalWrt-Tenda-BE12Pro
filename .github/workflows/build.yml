@@ -32,7 +32,7 @@ jobs:
       FIRMWARE_CONFIG: defconfig/minimal.config
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPRESS: "true"
-      CCACHE_MAXSIZE: "3000M"
+      CCACHE_MAXSIZE: "4000M"
       CCACHE_BASEDIR: ${{ github.workspace }}
 
     steps:
@@ -45,7 +45,7 @@ jobs:
         uses: klever1988/cachewrtbuild@main
         with:
           ccache: true
-          clean: ${{inputs.CLEAR_CACHE}}
+          clean: ${{inputs.CLEAR_CACHE || false }}
           mixkey: 'a53-mtkdev'
 
       - name: Initialize Build Environment
@@ -96,17 +96,19 @@ jobs:
           test -f "${FIRMWARE_CONFIG}"
           cp -f "${FIRMWARE_CONFIG}" .config
           set_config "CONFIG_TARGET_mediatek_filogic_DEVICE_tenda_be12-pro" "y"
-          set_config "CONFIG_CCACHE" "y"
           set_config "CONFIG_TARGET_ROOTFS_INITRAMFS" "n"
+
           make defconfig
 
-          grep -qx 'CONFIG_TARGET_mediatek_filogic_DEVICE_tenda_be12-pro=y' .config
-          grep -qx 'CONFIG_PACKAGE_luci-app-mtwifi-cfg=y' .config
+          set_config "CONFIG_CCACHE" "y"
+
+          echo "📄 Key config:"
           grep -E '^(CONFIG_TARGET_|CONFIG_CCACHE=|CONFIG_PACKAGE_kmod-mt7992=|CONFIG_MTK_WIFI7_CHIP_MT7992=)' .config
 
       - name: Download Sources
         run: |
           ccache --show-stats || true
+          sed -i 's|remlab.net/files/ndisc6|remlab.net/files/ndisc6/archive|g' package/mtk/applications/5g-modem/ndisc/Makefile
           make download -j"$(nproc)"
           find dl -type f -size -1024c -delete
 
