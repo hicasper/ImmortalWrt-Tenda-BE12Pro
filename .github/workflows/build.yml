@@ -3,7 +3,7 @@ name: Build Tenda BE12 Pro
 on:
   push:
     tags:
-      - "v*"
+      - v**
   workflow_dispatch:
     inputs:
       WRT_PKG:
@@ -26,6 +26,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
 
     env:
       DEBIAN_FRONTEND: noninteractive
@@ -103,12 +105,13 @@ jobs:
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-
-          bash ./custom.sh
+          ./scripts/feeds install -a
 
       - name: Load Tenda BE12 Pro Configuration
         run: |
           set -euo pipefail
+
+          bash ./custom.sh
 
           set_config() {
             local key="$1"
