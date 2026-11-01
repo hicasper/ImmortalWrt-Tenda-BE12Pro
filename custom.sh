@@ -81,6 +81,7 @@ UPDATE_PACKAGE "tailscale" "GuNanOvO/openwrt-tailscale" "main" "pkg" "tailscale"
 UPDATE_PACKAGE "luci-app-tailscale-community" "Tokisaki-Galaxy/luci-app-tailscale-community" "master" "" "luci-app-tailscale-community"
 UPDATE_PACKAGE "luciapp-adguardhome" "stevenjoezhang/luci-app-adguardhome" "dev" "" "luci-app-adguardhome"
 UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
+UPDATE_PACKAGE "luci-app-wifihistory" "openwrt/luci" "master" "pkg"
 
 # Proceed package files
 sed -i 's/PKG_BUILD_VERSION:=.*/PKG_BUILD_VERSION:=v1.19.29/g' ./package/OpenWrt-nikki/mihomo-meta/Makefile
@@ -110,6 +111,8 @@ echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
 sed -i '/luci-theme-argon/d' $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-theme-bootstrap=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-theme-footstrap=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_luci-app-wifihistory=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_iperf3=y' >> $MODEL_CONFIG_FILE
 echo >> $MODEL_CONFIG_FILE
 
 
