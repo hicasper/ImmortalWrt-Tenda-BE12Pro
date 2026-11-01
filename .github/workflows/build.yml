@@ -45,7 +45,7 @@ jobs:
         uses: klever1988/cachewrtbuild@main
         with:
           ccache: true
-          clean: ${{inputs.CLEAR_CACHE}}
+          clean: ${{inputs.CLEAR_CACHE || false }}
           mixkey: 'a53-mtkdev'
 
       - name: Initialize Build Environment
@@ -107,6 +107,7 @@ jobs:
       - name: Download Sources
         run: |
           ccache --show-stats || true
+          sed -i 's|remlab.net/files/ndisc6|remlab.net/files/ndisc6/archive|g' package/mtk/applications/5g-modem/ndisc/Makefile
           make download -j"$(nproc)"
           find dl -type f -size -1024c -delete
 
