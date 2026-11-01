@@ -10,14 +10,14 @@ on:
         description: '手动调整插件包，多个请用\n符号隔开。'
         required: false
         type: string
-      CLEAR_CACHE:
-        description: '是否清理编译缓存'
+      SKIP_CACHE:
+        description: '是否忽略编译缓存'
         type: boolean
         default: false
+        required: false
 
 env:
   WRT_PKG: ${{inputs.WRT_PKG}}
-
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -41,12 +41,42 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Prepare Cache
-        uses: klever1988/cachewrtbuild@main
+      - name: Restore Download Cache
+        uses: actions/cache@v6
+        if: ${{ !inputs.SKIP_CACHE }}
         with:
-          ccache: true
-          clean: ${{inputs.CLEAR_CACHE || false }}
-          mixkey: 'a53-mtkdev'
+          path: dl
+          key: ${{ runner.os }}-immortalwrt-dl-${{ hashFiles(env.FIRMWARE_CONFIG) }}
+          restore-keys: |
+            ${{ runner.os }}-immortalwrt-dl-
+
+      - name: Restore Compiler Cache
+        id: ccache-restore
+        uses: actions/cache/restore@v6
+        if: ${{ !inputs.SKIP_CACHE }}
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-immortalwrt-ccache-${{ github.ref_name }}-${{ hashFiles(env.FIRMWARE_CONFIG) }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-immortalwrt-ccache-${{ github.ref_name }}-${{ hashFiles(env.FIRMWARE_CONFIG) }}-
+            ${{ runner.os }}-immortalwrt-ccache-${{ github.ref_name }}
+
+      - name: Restore Host/Toolchain Cache
+        id: host-toolchain-cache
+        uses: actions/cache/restore@v6
+        if: ${{ !inputs.SKIP_CACHE }}
+        with:
+          path: |
+            staging_dir/host
+            staging_dir/hostpkg
+            staging_dir/toolchain-*
+            build_dir/host
+            build_dir/hostpkg
+            build_dir/toolchain-*
+          key: ${{ runner.os }}-immortalwrt-host-toolchain-${{ github.ref_name }}-${{ hashFiles('tools/**', 'toolchain/**', 'include/**') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-immortalwrt-host-toolchain-${{ github.ref_name }}-${{ hashFiles('tools/**', 'toolchain/**', 'include/**') }}-
+            ${{ runner.os }}-immortalwrt-host-toolchain-${{ github.ref_name }}
 
       - name: Initialize Build Environment
         run: |
@@ -95,6 +125,7 @@ jobs:
 
           test -f "${FIRMWARE_CONFIG}"
           cp -f "${FIRMWARE_CONFIG}" .config
+
           set_config "CONFIG_TARGET_mediatek_filogic_DEVICE_tenda_be12-pro" "y"
           set_config "CONFIG_TARGET_ROOTFS_INITRAMFS" "n"
 
@@ -133,6 +164,26 @@ jobs:
         run: |
           grep -Eq '^luci-app-mtwifi-cfg[[:space:]]' \
             bin/targets/mediatek/filogic/immortalwrt-mediatek-filogic-tenda_be12-pro.manifest
+
+      - name: Save Compiler Cache
+        if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: .ccache
+          key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+
+      - name: Save Host/Toolchain Cache
+        if: success() && steps.host-toolchain-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            staging_dir/host
+            staging_dir/hostpkg
+            staging_dir/toolchain-*
+            build_dir/host
+            build_dir/hostpkg
+            build_dir/toolchain-*
+          key: ${{ steps.host-toolchain-cache.outputs.cache-primary-key }}
 
       - name: Collect Build Configuration
         run: |

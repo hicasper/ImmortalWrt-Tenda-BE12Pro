@@ -96,6 +96,7 @@ sed -i \
   -e '/^ifneq ($(filter mips64% riscv64% loongarch64%,$(ARCH)),)/,/^endif$/d' \
   -e '/^ifneq ($(DISABLE_UPX),1)/,/^endif$/d' \
   ./package/tailscale/Makefile
+sed -i '\|include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk|a GO_BIN_PATH:=PATH=/usr/bin:$(PATH)' ./package/tailscale/Makefile
 
 # Enable packages
 MODEL_CONFIG_FILE='./defconfig/minimal.config'
