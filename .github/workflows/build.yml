@@ -151,15 +151,8 @@ jobs:
           set -euo pipefail
           ccache --show-stats || true
           if ! make -j"$(nproc)"; then
-            ln -sfn "/usr/bin/go" "./staging_dir/hostpkg/bin/go"
-            ln -sfn "/usr/bin/gofmt" "./staging_dir/hostpkg/bin/gofmt"
-            ln -sfn "/usr/bin/go" "./staging_dir/host/bin/go"
-            ln -sfn "/usr/bin/gofmt" "./staging_dir/host/bin/gofmt"
-            ln -sfn "/usr/bin/go" "./staging_dir/hostpkg/lib/go-cross/bin/go"
-            if ! make -j"$(nproc)"; then
-              echo "::warning::Parallel build failed, retrying with -j1 V=s"
-              make -j1 V=s
-            fi
+            echo "::warning::Parallel build failed, retrying with -j1 V=s"
+            make -j1 V=s
           fi
           ccache --show-stats || true
 
