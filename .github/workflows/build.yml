@@ -44,12 +44,14 @@ jobs:
           fetch-depth: 1
 
       - name: Restore Download Cache
+        id: download-restore
         uses: actions/cache@v6
         if: ${{ !inputs.SKIP_CACHE }}
         with:
           path: dl
-          key: ${{ runner.os }}-immortalwrt-dl-${{ hashFiles(env.FIRMWARE_CONFIG) }}
+          key: ${{ runner.os }}-immortalwrt-dl-${{ github.ref_name }}-${{ hashFiles('dl/**') }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-immortalwrt-dl-${{ github.ref_name }}-
             ${{ runner.os }}-immortalwrt-dl-
 
       - name: Restore Compiler Cache
@@ -61,7 +63,8 @@ jobs:
           key: ${{ runner.os }}-immortalwrt-ccache-${{ github.ref_name }}-${{ hashFiles(env.FIRMWARE_CONFIG) }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-immortalwrt-ccache-${{ github.ref_name }}-${{ hashFiles(env.FIRMWARE_CONFIG) }}-
-            ${{ runner.os }}-immortalwrt-ccache-${{ github.ref_name }}
+            ${{ runner.os }}-immortalwrt-ccache-${{ github.ref_name }}-
+            ${{ runner.os }}-immortalwrt-ccache-
 
       - name: Restore Host/Toolchain Cache
         id: host-toolchain-cache
@@ -79,6 +82,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-immortalwrt-host-toolchain-${{ github.ref_name }}-${{ hashFiles('tools/**', 'toolchain/**', 'include/**') }}-
             ${{ runner.os }}-immortalwrt-host-toolchain-${{ github.ref_name }}
+            ${{ runner.os }}-immortalwrt-host-toolchain-
 
       - name: Initialize Build Environment
         run: |
@@ -160,6 +164,13 @@ jobs:
         run: |
           grep -Eq '^luci-app-mtwifi-cfg[[:space:]]' \
             bin/targets/mediatek/filogic/immortalwrt-mediatek-filogic-tenda_be12-pro.manifest
+
+      - name: Save Download Cache
+        if: always() && steps.download-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: dl
+          key: ${{ steps.download-restore.outputs.cache-primary-key }}
 
       - name: Save Compiler Cache
         if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
