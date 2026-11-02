@@ -81,6 +81,7 @@ UPDATE_PACKAGE "tailscale" "GuNanOvO/openwrt-tailscale" "main" "pkg" "tailscale"
 UPDATE_PACKAGE "luci-app-tailscale-community" "Tokisaki-Galaxy/luci-app-tailscale-community" "master" "" "luci-app-tailscale-community"
 UPDATE_PACKAGE "luciapp-adguardhome" "stevenjoezhang/luci-app-adguardhome" "dev" "" "luci-app-adguardhome"
 UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
+UPDATE_PACKAGE "luci-app-timecontrol" "gaobin89/luci-app-timecontrol" "js"
 git clone --depth=1 --single-branch --branch master https://github.com/openwrt/luci ./tmp_wrtluci && \
 	cp -rf ./tmp_wrtluci/applications/luci-app-wifihistory ./package/ &&
 	rm -rf ./tmp_wrtluci
@@ -101,12 +102,16 @@ sed -i '\|include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk|a GO_BI
 # Enable packages
 MODEL_CONFIG_FILE='./defconfig/minimal.config'
 echo >> $MODEL_CONFIG_FILE
-echo 'CONFIG_PACKAGE_kmod-mtd-rw=y' >> $MODEL_CONFIG_FILE
+#echo 'CONFIG_PACKAGE_kmod-mtd-rw=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_LUCI_LANG_zh_Hans=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-wol=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-tailscale-community=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-adguardhome=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-compat=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_luci-i18n-ddns-zh-cn=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_ddns-scripts-aliyun=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_ddns-scripts-dnspod=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_ddns-scripts-cloudflare=y' >> $MODEL_CONFIG_FILE
 #echo 'CONFIG_PACKAGE_adguardhome=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_mihomo-meta=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_mihomo-alpha=n' >> $MODEL_CONFIG_FILE
@@ -115,7 +120,9 @@ echo 'CONFIG_PACKAGE_luci-app-nikki=y' >> $MODEL_CONFIG_FILE
 sed -i '/luci-theme-argon/d' $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-theme-bootstrap=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-theme-footstrap=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_luci-i18n-footstrap-zh-cn=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_luci-app-wifihistory=y' >> $MODEL_CONFIG_FILE
+echo 'CONFIG_PACKAGE_luci-app-timecontrol=y' >> $MODEL_CONFIG_FILE
 echo 'CONFIG_PACKAGE_iperf3=y' >> $MODEL_CONFIG_FILE
 echo >> $MODEL_CONFIG_FILE
 
